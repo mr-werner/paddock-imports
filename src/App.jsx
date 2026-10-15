@@ -1,17 +1,16 @@
 import blueprintLogo from "./assets/blueprint-webstudio-logo.png";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowUpRight, BadgeCheck, CheckCircle2, Clock, MapPin, Menu, Minus, Phone, Plus, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CheckCircle2, Clock, Flag, MapPin, Menu, Minus, Phone, Plus, Snowflake, Truck, X } from "lucide-react";
 import SITE from "./site.js";
 
 // -----------------------------------------------------------------------------
 // All business content lives in src/site.js. This file only lays it out.
 // -----------------------------------------------------------------------------
 
-const { COMPANY, PHONE, PHONE_DISPLAY, EMAIL, ADDRESS, CITY, MAPS_QUERY, FOUNDED, FALLBACK_RATING } = SITE;
+const { COMPANY, PHONE, PHONE_DISPLAY, EMAIL, ADDRESS, CITY, MAPS_QUERY, FALLBACK_RATING } = SITE;
 const GOOGLE_REVIEWS_URL = SITE.GOOGLE_PLACE_ID
   ? `https://search.google.com/local/reviews?placeid=${SITE.GOOGLE_PLACE_ID}`
   : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(MAPS_QUERY)}`;
-const GOOGLE_WRITE_REVIEW_URL = SITE.GOOGLE_PLACE_ID ? `https://search.google.com/local/writereview?placeid=${SITE.GOOGLE_PLACE_ID}` : null;
 
 // Public contact details for the studio — edit here, no environment variables required.
 const STUDIO_PHONE = "+17205156647";
@@ -191,16 +190,10 @@ function ConceptWidget() {
 // HEADER
 // -----------------------------------------------------------------------------
 
-function BrandMark() {
-  const Icon = SITE.BRAND.icon;
-  return <span className="brand-mark" aria-hidden="true"><Icon strokeWidth={2} /></span>;
-}
-
 function Brand({ onClick }) {
   return (
-    <a className="brand" href="#home" onClick={onClick} aria-label={`${COMPANY} home`}>
-      <BrandMark />
-      <span className="brand-text"><strong>{SITE.BRAND.name}</strong><small>{SITE.BRAND.sub}</small></span>
+    <a className="brand brand-logo" href="#home" onClick={onClick} aria-label={`${COMPANY} home`}>
+      <img src={SITE.BRAND.logo} alt={SITE.BRAND.logoAlt} width="402" height="102" />
     </a>
   );
 }
@@ -208,11 +201,11 @@ function Brand({ onClick }) {
 function navItems() {
   return [
     ["#services", "Services"],
-    SITE.FEATURE && [`#${SITE.FEATURE.id}`, SITE.FEATURE.nav],
-    ["#about", SITE.ABOUT.nav || "About"],
+    ["#prices", "Prices"],
+    ["#about", SITE.ABOUT.nav],
     ["#reviews", "Reviews"],
-    ["#visit", SITE.VISIT.nav || "Visit"],
-  ].filter(Boolean);
+    ["#visit", SITE.VISIT.nav],
+  ];
 }
 
 function SiteHeader() {
@@ -224,7 +217,14 @@ function SiteHeader() {
       <div className="announce">
         <div className="container announce-inner">
           <span>{SITE.ANNOUNCE}</span>
-          <a href={`tel:${PHONE}`}><Phone size={13} /> {PHONE_DISPLAY}</a>
+          <div className="announce-contact">
+            <div className="announce-social">
+              {SITE.SOCIAL_LINKS.filter(({ url, top }) => url && top).map(({ name, url, icon: Icon }) => (
+                <a key={name} href={url} target="_blank" rel="noopener noreferrer" aria-label={`${COMPANY} on ${name}`} title={name}><Icon size={14} /></a>
+              ))}
+            </div>
+            <a href={`tel:${PHONE}`}><Phone size={13} /> {PHONE_DISPLAY}</a>
+          </div>
         </div>
       </div>
       <header className="header">
@@ -248,56 +248,74 @@ function SiteHeader() {
 // PAGE SECTIONS
 // -----------------------------------------------------------------------------
 
+function Stripe({ className = "" }) {
+  return <span className={`race-stripe ${className}`} aria-hidden="true"><i /><i /><i /></span>;
+}
+
 function Hero({ rating }) {
   const { HERO } = SITE;
   return (
     <section className="hero">
-      <div className="hero-grid" aria-hidden="true" />
+      <img className="hero-bg" src={HERO.photo.src} alt={HERO.photo.alt} width="2200" height="902" fetchPriority="high" />
+      <div className="hero-shade" aria-hidden="true" />
+      <div className="hero-stripes" aria-hidden="true"><i /><i /><i /></div>
       <div className="container hero-inner">
         <div className="hero-copy">
           <span className="eyebrow light">{HERO.eyebrow}</span>
-          <h1><Title parts={HERO.title} /></h1>
+          <h1><span>{HERO.title[0]}</span> <em>{HERO.title[1]}</em></h1>
           <p>{HERO.text}</p>
           <div className="hero-actions">
             <a className="btn primary" href="#book">{HERO.cta} <ArrowUpRight size={19} /></a>
             <a className="btn ghost" href={`tel:${PHONE}`}><Phone size={18} /> {PHONE_DISPLAY}</a>
           </div>
         </div>
-        <aside className="hero-card" aria-label="At a glance">
-          {rating ? (
-            <a className="hero-rating" href={rating.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-              <span className="stars" aria-hidden="true">★★★★★</span>
-              <strong>{rating.rating.toFixed(1)}</strong>
-              <span>on Google · {rating.userRatingCount.toLocaleString()} reviews</span>
-            </a>
-          ) : (
-            <div className="hero-rating">
-              <span className="stars" aria-hidden="true">{HERO.badgeKicker}</span>
-              <strong>{HERO.badgeBig}</strong>
-              <span>{HERO.badgeSmall}</span>
-            </div>
-          )}
+        <aside className="pit-card" aria-label="Before you come in">
+          <span className="pit-card-head"><Flag size={14} /> Pit info</span>
           <ul>
-            {HERO.card.map(({ icon: Icon, title, text }) => (
+            {HERO.pit.map(({ icon: Icon, title, text }) => (
               <li key={title}><Icon size={18} /><span><b>{title}</b>{text}</span></li>
             ))}
           </ul>
+          {rating && (
+            <a className="pit-rating" href={rating.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+              <strong>{rating.rating.toFixed(1)}</strong>
+              <span><span className="stars" aria-hidden="true">★★★★★</span>{rating.userRatingCount.toLocaleString()} Google reviews</span>
+            </a>
+          )}
         </aside>
       </div>
-      <div className="container stats">
-        {SITE.STATS(rating).map(([value, label]) => <div key={label}><strong>{value}</strong><span>{label}</span></div>)}
+      <div className="timing">
+        <div className="container timing-inner">
+          {SITE.STATS(rating).map(([value, label], i) => (
+            <div key={label}><small>P{i + 1}</small><strong>{value}</strong><span>{label}</span></div>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-function Offers() {
-  if (!SITE.OFFERS?.length) return null;
+function Marques() {
   return (
-    <div className="offer-strip" style={{ "--offer-cols": SITE.OFFERS.length }}>
-      <div className="container">
-        {SITE.OFFERS.map(([title, text]) => <article key={title}><strong>{title}</strong><span>{text}</span></article>)}
+    <section className="marques" aria-label="Makes we specialize in">
+      <div className="container marques-inner">
+        <ul>
+          {SITE.MARQUES.map((name) => <li key={name}>{name}</li>)}
+        </ul>
+        <p>{SITE.MARQUES_NOTE}</p>
       </div>
+    </section>
+  );
+}
+
+function SectionHead({ eyebrow, title, text, light }) {
+  return (
+    <div className="section-head">
+      <div>
+        <span className={`eyebrow${light ? " light" : ""}`}>{eyebrow}</span>
+        <h2><Title parts={title} /></h2>
+      </div>
+      {text && <p>{text}</p>}
     </div>
   );
 }
@@ -307,62 +325,19 @@ function Services() {
   return (
     <section className="section services" id="services">
       <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">{SERVICES.eyebrow}</span>
-            <h2><Title parts={SERVICES.title} /></h2>
-          </div>
-          <p>{SERVICES.text}</p>
-        </div>
+        <SectionHead {...SERVICES} />
         <div className="services-grid">
-          {SERVICES.items.map(({ title, desc, icon: Icon }, index) => (
+          {SERVICES.items.map(({ title, desc, photo, alt }, index) => (
             <article className="service-card" key={title}>
-              <div className="service-top">
-                <span className="service-icon"><Icon size={24} strokeWidth={1.6} /></span>
-                <span className="service-num">{String(index + 1).padStart(2, "0")}</span>
+              <div className="service-photo">
+                <img src={photo} alt={alt} loading="lazy" width="800" height="450" />
+                <span className="service-pos">P{index + 1}</span>
               </div>
-              <h3>{title}</h3>
-              <p>{desc}</p>
-              <a href="#book" data-service={title}>{SERVICES.cta} <ArrowRight size={15} /></a>
-            </article>
-          ))}
-        </div>
-        {SERVICES.chips && (
-          <div className="chips-wrap">
-            <div>
-              <h3>{SERVICES.chips.title}</h3>
-              {SERVICES.chips.note && <p>{SERVICES.chips.note}</p>}
-            </div>
-            <div className="chips">{SERVICES.chips.items.map((item) => <span key={item}>{item}</span>)}</div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function Feature() {
-  const { FEATURE } = SITE;
-  if (!FEATURE) return null;
-  return (
-    <section className="section feature" id={FEATURE.id}>
-      <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow light">{FEATURE.eyebrow}</span>
-            <h2><Title parts={FEATURE.title} /></h2>
-          </div>
-          <p>{FEATURE.text}</p>
-        </div>
-        <div className={`feature-grid${FEATURE.cards.length === 3 ? " cols-3" : ""}`}>
-          {FEATURE.cards.map(({ name, icon: Icon, tone, lead, items }) => (
-            <article className="feature-card" key={name} style={tone ? { "--tone": tone } : undefined}>
-              <span className="feature-icon"><Icon size={26} strokeWidth={1.5} /></span>
-              <h3>{name}</h3>
-              <p>{lead}</p>
-              <ul>
-                {items.map((item) => <li key={item}><CheckCircle2 size={15} /> {item}</li>)}
-              </ul>
+              <div className="service-body">
+                <h3>{title}</h3>
+                <p>{desc}</p>
+                <a href="#book" data-service={title}>{SERVICES.cta} <ArrowRight size={15} /></a>
+              </div>
             </article>
           ))}
         </div>
@@ -376,21 +351,42 @@ function Process() {
   return (
     <section className="section process">
       <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">{PROCESS.eyebrow}</span>
-            <h2><Title parts={PROCESS.title} /></h2>
-          </div>
-          <p>{PROCESS.text}</p>
-        </div>
-        <div className="process-grid">
+        <SectionHead {...PROCESS} light />
+        <ol className="lap">
           {PROCESS.steps.map(([title, description], index) => (
-            <article key={title}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
+            <li key={title}>
+              <span className="lap-turn">T{index + 1}</span>
               <h3>{title}</h3>
               <p>{description}</p>
-            </article>
+            </li>
           ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+function Prices() {
+  const { PRICES } = SITE;
+  return (
+    <section className="section prices" id="prices">
+      <div className="container">
+        <SectionHead {...PRICES} />
+        <div className="price-board">
+          {PRICES.groups.map(({ name, rows }) => (
+            <div className="price-group" key={name}>
+              <h3>{name}</h3>
+              <dl>
+                {rows.map(([label, value]) => (
+                  <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+        <div className="price-foot">
+          <p className="price-tip"><Snowflake size={18} /> {PRICES.tip}</p>
+          <p className="price-note">{PRICES.note}</p>
         </div>
       </div>
     </section>
@@ -402,27 +398,31 @@ function About() {
   return (
     <section className="section about" id="about">
       <div className="container about-inner">
-        <div className="about-media" aria-hidden="true">
-          <div className="about-quads">
-            {ABOUT.tiles.map(({ label, icon: Icon, tone }) => (
-              <span className="about-quad" key={label} style={tone ? { "--tone": tone } : undefined}><Icon size={34} strokeWidth={1.4} /><small>{label}</small></span>
-            ))}
-          </div>
-          <div className="about-badge"><strong>{ABOUT.badge[0]}</strong><span>{ABOUT.badge[1]}</span></div>
-        </div>
+        <figure className="about-portrait">
+          <img src={ABOUT.portrait.src} alt={ABOUT.portrait.alt} width="1000" height="1250" />
+          <figcaption>{ABOUT.portrait.caption}</figcaption>
+          <Stripe className="about-stripe" />
+        </figure>
         <div>
           <span className="eyebrow">{ABOUT.eyebrow}</span>
           <h2><Title parts={ABOUT.title} /></h2>
           {ABOUT.text.map((paragraph) => <p className="about-lead" key={paragraph.slice(0, 24)}>{paragraph}</p>)}
-          <div className="credentials">
-            {ABOUT.credentials.map(({ title, desc }) => (
-              <div key={title}>
-                <BadgeCheck size={22} strokeWidth={1.6} />
-                <span><strong>{title}</strong>{desc}</span>
-              </div>
-            ))}
+          <div className="crew-stats">
+            {ABOUT.credentials.map(([big, small]) => <div key={big}><strong>{big}</strong><span>{small}</span></div>)}
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function Gallery() {
+  const { GALLERY } = SITE;
+  return (
+    <section className="gallery" aria-label={GALLERY.eyebrow}>
+      <div className="gallery-grid">
+        {GALLERY.items.map(({ src, alt }) => <figure key={src}><img src={src} alt={alt} /></figure>)}
+        <div className="gallery-label"><span className="eyebrow light">{GALLERY.eyebrow}</span><strong><Title parts={GALLERY.title} /></strong></div>
       </div>
     </section>
   );
@@ -434,31 +434,32 @@ function Reviews({ data, rating }) {
   return (
     <section className="section reviews" id="reviews">
       <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">CUSTOMER REVIEWS</span>
-            <h2>{rating ? <>Rated {rating.rating.toFixed(1)} by <em>{rating.userRatingCount.toLocaleString()} customers.</em></> : <Title parts={REVIEWS.title} />}</h2>
-          </div>
-          <p>{REVIEWS.text}</p>
-        </div>
-        <div className="reviews-summary">
-          <div>
+        <SectionHead {...REVIEWS} />
+        <div className="rep-grid">
+          <a className="rep-google" href={rating?.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
             <span className="google-wordmark">Google</span>
             {rating ? (
               <>
-                <strong>{rating.rating.toFixed(1)} <span className="stars">★★★★★</span></strong>
+                <strong>{rating.rating.toFixed(1)}</strong>
+                <span className="stars" aria-hidden="true">★★★★★</span>
                 <span>{rating.userRatingCount.toLocaleString()} Google reviews</span>
               </>
-            ) : (
-              <span>See what customers say about {COMPANY} on Google.</span>
-            )}
-          </div>
-          <div className="reviews-actions">
-            <a className="btn dark" href={rating?.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">Read reviews on Google <ArrowUpRight size={17} /></a>
-            {GOOGLE_WRITE_REVIEW_URL && <a className="btn outline" href={GOOGLE_WRITE_REVIEW_URL} target="_blank" rel="noopener noreferrer">Leave a review</a>}
+            ) : <span>See what customers say on Google.</span>}
+            <b>Read reviews on Google <ArrowUpRight size={16} /></b>
+          </a>
+          <div className="rep-badges">
+            {REVIEWS.badges.map(({ img, name, url, w, h }) => (
+              <a key={url} href={url} target="_blank" rel="noopener noreferrer" title={name}>
+                <img src={img} alt={name} width={w} height={h} />
+              </a>
+            ))}
+            <div className="rep-partner">
+              <img src={REVIEWS.partner.img} alt={REVIEWS.partner.name} />
+              <span>{REVIEWS.partner.text}</span>
+            </div>
           </div>
         </div>
-        {reviews.length > 0 ? (
+        {reviews.length > 0 && (
           <>
             <div className="reviews-grid">
               {reviews.slice(0, 3).map((review, i) => (
@@ -473,17 +474,6 @@ function Reviews({ data, rating }) {
               ))}
             </div>
             <p className="reviews-attribution">Reviews provided by Google. A limited selection is displayed.</p>
-          </>
-        ) : REVIEWS.quotes?.length > 0 && (
-          <>
-            <div className="quotes-grid">
-              {REVIEWS.quotes.map(([text, name]) => (
-                <article className="quote-card" key={name}>
-                  <blockquote>{text}</blockquote>
-                  <footer>{name}<small>{REVIEWS.quoteSource}</small></footer>
-                </article>
-              ))}
-            </div>
           </>
         )}
       </div>
@@ -585,6 +575,7 @@ function Book() {
           <ul className="book-points">
             {BOOK.points.map((point) => <li key={point}><CheckCircle2 size={18} /> {point}</li>)}
           </ul>
+          <a className="book-call" href={`tel:${PHONE}`}><Phone size={20} /><span><small>Prefer to call?</small>{PHONE_DISPLAY}</span></a>
         </div>
         <RequestForm />
       </div>
@@ -603,24 +594,24 @@ function Visit() {
           <span className="eyebrow">{VISIT.eyebrow}</span>
           <h2><Title parts={VISIT.title} /></h2>
           <div className="visit-blocks">
-            {ADDRESS && (
-              <div>
-                <MapPin size={20} />
-                <span><small>ADDRESS</small>{ADDRESS}<br />{CITY}</span>
-              </div>
-            )}
+            <div>
+              <MapPin size={20} />
+              <span><small>ADDRESS</small>{ADDRESS}<br />{CITY}</span>
+            </div>
             <div>
               <Phone size={20} />
-              <span><small>PHONE</small><a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a>{EMAIL && <><br /><a href={`mailto:${EMAIL}`}>{EMAIL}</a></>}</span>
+              <span><small>CALL, TEXT OR EMAIL</small><a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a> · <a href={`sms:+1${PHONE}`}>Text us</a><br /><a href={`mailto:${EMAIL}`}>{EMAIL}</a></span>
             </div>
-            {HOURS.length > 0 && (
-              <div>
-                <Clock size={20} />
-                <span><small>HOURS</small>
-                  {HOURS.map(([day, hours]) => <span className="hours-row" key={day}><b>{day}</b>{hours}</span>)}
-                </span>
-              </div>
-            )}
+            <div>
+              <Clock size={20} />
+              <span><small>HOURS · BY APPOINTMENT</small>
+                {HOURS.map(([day, hours]) => <span className="hours-row" key={day}><b>{day}</b>{hours}</span>)}
+              </span>
+            </div>
+            <div>
+              <Truck size={20} />
+              <span><small>NEED A TOW?</small>{VISIT.tow.name} · <a href={`tel:${VISIT.tow.phone}`}>{VISIT.tow.display}</a></span>
+            </div>
           </div>
           <a className="btn dark" href={directions} target="_blank" rel="noopener noreferrer">Get Directions <ArrowUpRight size={17} /></a>
           <p className="areas">{VISIT.areas}</p>
@@ -636,6 +627,7 @@ function Visit() {
 function Footer() {
   return (
     <footer className="footer">
+      <Stripe className="footer-stripe" />
       <div className="container footer-main">
         <div>
           <Brand />
@@ -648,20 +640,20 @@ function Footer() {
         </div>
         <div>
           <b>Services</b>
-          {SITE.SERVICES.items.slice(0, 5).map(({ title }) => <a key={title} href="#services">{title}</a>)}
+          {SITE.SERVICES.items.slice(0, 6).map(({ title }) => <a key={title} href="#services">{title}</a>)}
         </div>
         <div>
-          <b>{SITE.NOUN === "shop" ? "Shop" : "Company"}</b>
+          <b>Shop</b>
           {navItems().slice(1).map(([href, label]) => <a key={href} href={href}>{label}</a>)}
           <a href="#book">{SITE.BOOK.nav}</a>
         </div>
         <div>
           <b>Contact</b>
           <a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a>
-          {EMAIL && <a href={`mailto:${EMAIL}`}>{EMAIL}</a>}
-          {ADDRESS && <span>{ADDRESS}</span>}
-          {ADDRESS && <span>{CITY}</span>}
-          {SITE.HOURS_SHORT && <span>{SITE.HOURS_SHORT}</span>}
+          <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+          <span>{ADDRESS}</span>
+          <span>{CITY}</span>
+          <span>{SITE.HOURS_SHORT}</span>
         </div>
       </div>
       <div className="container footer-bottom">
@@ -705,11 +697,12 @@ export default function App() {
       <SiteHeader />
       <main id="home">
         <Hero rating={rating} />
-        <Offers />
+        <Marques />
         <Services />
-        <Feature />
         <Process />
+        <Prices />
         <About />
+        <Gallery />
         <Reviews data={reviewData} rating={rating} />
         <Book />
         <Visit />

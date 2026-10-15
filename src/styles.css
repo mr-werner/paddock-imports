@@ -1,6 +1,6 @@
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 120px; }
+html { scroll-behavior: smooth; scroll-padding-top: 136px; }
 body { margin: 0; background: var(--paper); }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; cursor: pointer; }
